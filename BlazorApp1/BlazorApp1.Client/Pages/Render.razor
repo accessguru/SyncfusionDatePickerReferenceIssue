@@ -1,0 +1,73 @@
+﻿@page "/render"
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Render Fragment Issue</PageTitle>
+
+<div>
+    <label class="fw-bold">All Components should be disabled when set via the component reference.</label>
+</div>
+<div>
+    <label>Date Pickers are not disabling</label>
+</div>
+
+<div class="m-3">
+    <SfDatePicker @ref="_datePicker" TValue="DateTime"/>
+</div>
+<div class="m-3">
+    <label>Render Fragment</label>
+    @_datePickeRenderFragment
+</div>
+
+<div>
+    <label>Checkboxes are disabling as expected</label>
+</div>
+
+<div class="m-3">
+    <SfCheckBox @ref="_checkBox" TChecked="bool" Label="Checkbox" />
+</div>
+<div class="m-3">
+    @_checkBoxRenderFragment
+</div>
+
+@code {
+    private SfDatePicker<DateTime> _datePicker;
+    private RenderFragment _datePickeRenderFragment;
+    private SfDatePicker<DateTime> _datePickerRef;
+
+    private SfCheckBox<bool> _checkBox;
+    private RenderFragment _checkBoxRenderFragment;
+    private SfCheckBox<bool> _checkBoxRef;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _datePickeRenderFragment = builder =>
+        {
+            builder.OpenComponent(0, typeof(SfDatePicker<DateTime>));
+            builder.AddComponentReferenceCapture(1, o => _datePickerRef = (SfDatePicker<DateTime>)o);
+            builder.CloseComponent();
+        };
+
+        _checkBoxRenderFragment = builder =>
+        {
+            builder.OpenComponent(0, typeof(SfCheckBox<bool>));
+            builder.AddAttribute(1, "Label", "Render Fragment");
+            builder.AddComponentReferenceCapture(2, o => _checkBoxRef = (SfCheckBox<bool>)o);
+            builder.CloseComponent();
+        };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);                
+
+        if (firstRender)
+        {
+            _datePicker.Enabled = false;
+            _datePickerRef.Enabled = false;
+            _checkBox.Disabled = true;
+            _checkBoxRef.Disabled = true;
+            StateHasChanged();
+        }
+    }
+}
